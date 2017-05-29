@@ -24,7 +24,7 @@
 #include "common.h"
 #include "mem.h"
 #include "thread.h"
-
+#define FF_MEMORY_POISON 0x2a
 AVBufferRef *av_buffer_create(uint8_t *data, int size,
                               void (*free)(void *opaque, uint8_t *data),
                               void *opaque, int flags)
