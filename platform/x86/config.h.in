@@ -272,7 +272,11 @@
 #define HAVE_ES2_GL_H 0
 #define HAVE_GSM_H 0
 #define HAVE_IO_H 0
+#if defined(WIN32)
+#define HAVE_MACH_MACH_TIME_H 0
+#else
 #define HAVE_MACH_MACH_TIME_H 1
+#endif
 #define HAVE_MACHINE_IOCTL_BT848_H 0
 #define HAVE_MACHINE_IOCTL_METEOR_H 0
 #define HAVE_MALLOC_H 0

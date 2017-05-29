@@ -61,6 +61,11 @@ if (NOT YASM_FOUND)
     HINTS ${YASM_ROOT_DIR} ${CMAKE_INSTALL_PREFIX}
     PATH_SUFFIXES bin
     )
+  find_program(YASM_EXECUTABLE 
+ NAMES yasm yasm-1.2.0-win32 yasm-1.2.0-win64 yasm yasm-1.3.0-win32 yasm-1.3.0-win64
+ HINTS $ENV{YASM_ROOT} ${YASM_ROOT}
+ PATH_SUFFIXES bin
+)
 
   ##_____________________________________________________________________________
   ## Actions taken when all components have been found

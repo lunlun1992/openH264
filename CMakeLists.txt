@@ -68,8 +68,8 @@ endif()
 
 if(WIN32)
     add_definitions(
-        -Dsnprintf=avpriv_snprintf
-        -Dvsnprintf=avpriv_vsnprintf
+#        -Dsnprintf=avpriv_snprintf
+#        -Dvsnprintf=avpriv_vsnprintf
         -Dinline=__inline
         -Drestrict=__restrict
     )
@@ -105,7 +105,6 @@ set(COMMON_YASM_ARGS
     -I./
     -I "${CMAKE_CURRENT_SOURCE_DIR}"
     -P "${PROJECT_BINARY_DIR}/config.asm"
-    -I "${CMAKE_CURRENT_SOURCE_DIR}/libavfilter/x86/"
     -I "${CMAKE_CURRENT_SOURCE_DIR}/libavutil/x86/"
     -DPIC
 )
@@ -159,7 +158,6 @@ AddCompilerFlag("-fno-tree-vectorize" C_FLAGS Vc_ARCHITECTURE_FLAGS)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${Vc_ARCHITECTURE_FLAGS}")
 
-project(libavutil)
 set(libfilenames
     libavutil/avstring.c
     libavutil/atomic.c
@@ -258,12 +256,7 @@ list(APPEND libfilenames
     libavcodec/x86/h264_intrapred_init.c
     libavcodec/x86/h264_qpel.c)
 endif()
-if(WIN32)
-list(APPEND libfilenames
-    compat/strtod.c
-    compat/msvcrt/snprintf.c
-)
-endif()
+
 if(WIN32 OR ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l"))
     option (BUILD_SHARED_LIBS "enabled static library instead of shared" ON)
 else()
@@ -271,9 +264,13 @@ else()
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
+link_directories(${PROJECT_SOURCE_DIR}/pthread/lib)
 add_library(openH264wrapper ${libfilenames} ${YASM_OBJECTS})
 if(CRYPTOPP_FOUND)
 target_link_libraries(openH264wrapper cryptopp)
 else()
 target_link_libraries(openH264wrapper m)
+endif()
+if(WIN32)
+target_link_libraries(openH264wrapper pthread_static_x64)
 endif()
