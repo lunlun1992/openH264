@@ -11,17 +11,17 @@ message("DEBUG: CMAKE_SYSTEM_PROCESSOR = ${CMAKE_SYSTEM_PROCESSOR}")
 message("DEBUG: CMAKE_SYSTEM_NAME      = ${CMAKE_SYSTEM_NAME}")
 
 macro (my_check_function_exists arg result)
-  check_function_exists(${arg} ${result})
-  if(${result} STREQUAL "")
-    set(${result} 0)
-  endif()
+    check_function_exists(${arg} ${result})
+    if(${result} STREQUAL "")
+        set(${result} 0)
+    endif()
 endmacro (my_check_function_exists)
 
 macro (my_check_include_files arg result)
-  check_include_files(${arg} ${result})
-  if(${result} STREQUAL "")
-    set(${result} 0)
-  endif()
+    check_include_files(${arg} ${result})
+    if(${result} STREQUAL "")
+        set(${result} 0)
+    endif()
 endmacro (my_check_include_files)
 
 include(CheckTypeSize)
@@ -49,14 +49,45 @@ my_check_include_files(windows.h                WINDOWS_H_FOUND)
 #find asm compiler
 option (USE_YASM "Use YASM. If YASM is not enabled the assembly implementation will be disabled." ON)
 if (USE_YASM)
-  find_package (Yasm)
+    find_package (Yasm)
 endif ()
+
+# System architecture detection
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" SYSPROC)
+set(X86_ALIASES x86 i386 i686 x86_64 amd64)
+set(ARM_ALIASES armv6l armv7l)
+list(FIND X86_ALIASES "${SYSPROC}" X86MATCH)
+list(FIND ARM_ALIASES "${SYSPROC}" ARMMATCH)
+set(POWER_ALIASES ppc64 ppc64le)
+list(FIND POWER_ALIASES "${SYSPROC}" POWERMATCH)
+if("${SYSPROC}" STREQUAL "" OR X86MATCH GREATER "-1")
+    if("${CMAKE_SIZEOF_VOID_P}" MATCHES 8)
+        set(X86_64 TRUE)
+        message(STATUS "Detected x86_64 target processor")
+    else()
+        set(X86_32 TRUE)
+        message(STATUS "Detected x86_32 target processor")
+    endif()
+elseif(POWERMATCH GREATER "-1")
+    message(STATUS "Detected POWER target processor")
+    set(POWER 1)
+    if("${CMAKE_SIZEOF_VOID_P}" MATCHES 8)
+        set(PPC64 1)
+        message(STATUS "Detected POWER PPC64 target processor")
+    endif()
+elseif(ARMMATCH GREATER "-1")
+    message(STATUS "Detected ARM target processor")
+    set(ARM 1)
+else()
+    message(STATUS "CMAKE_SYSTEM_PROCESSOR value `${CMAKE_SYSTEM_PROCESSOR}` is unknown")
+    message(STATUS "Please add this value near ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE}")
+endif()
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
     configure_file(platform/arm/config.h ${PROJECT_BINARY_DIR}/config.h)
 else()
-  configure_file(platform/x86/config.h.in ${PROJECT_BINARY_DIR}/config.h)
-  configure_file(platform/x86/config.asm.in ${PROJECT_BINARY_DIR}/config.asm)
+    configure_file(platform/x86/config.h.in ${PROJECT_BINARY_DIR}/config.h)
+    configure_file(platform/x86/config.asm.in ${PROJECT_BINARY_DIR}/config.asm)
 endif()
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
@@ -153,8 +184,13 @@ elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
 endif()
 
 add_definitions("-DPIC")
+if(WIN32)
+AddCompilerFlag("-fPIC" C_FLAGS Vc_ARCHITECTURE_FLAGS)
+AddCompilerFlag("-fno-tree-vectorize" C_FLAGS Vc_ARCHITECTURE_FLAGS)
+else()
 AddCompilerFlag("-fpic" C_FLAGS Vc_ARCHITECTURE_FLAGS)
 AddCompilerFlag("-fno-tree-vectorize" C_FLAGS Vc_ARCHITECTURE_FLAGS)
+endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${Vc_ARCHITECTURE_FLAGS}")
 
@@ -186,6 +222,7 @@ set(libfilenames
     libavutil/pixdesc.c
     libavutil/rational.c
     libavutil/random_seed.c
+    libavutil/reverse.c
     libavutil/rc4.c
     libavutil/samplefmt.c
     libavutil/sha.c
@@ -203,9 +240,14 @@ set(libfilenames
     libavcodec/bitstream_filters.c
     libavcodec/bsf.c
     libavcodec/codec_desc.c
+    libavcodec/cabac.c
+    libavcodec/constants.c
     libavcodec/d3d11va.c
     libavcodec/dirac.c
     libavcodec/dv_profile.c
+    libavcodec/error_resilience.c
+    libavcodec/fdctdsp.c
+    libavcodec/idctdsp.c
     libavcodec/imgconvert.c
     libavcodec/jni.c
     libavcodec/mathtables.c
@@ -213,8 +255,10 @@ set(libfilenames
     libavcodec/mpeg12framerate.c
     libavcodec/options.c
     libavcodec/mjpegenc_huffman.c
+    libavcodec/pixblockdsp.c
     libavcodec/parser.c
     libavcodec/profiles.c
+    libavcodec/pthread_frame.c
     libavcodec/qsv_api.c
     libavcodec/raw.c
     libavcodec/resample.c
@@ -225,14 +269,22 @@ set(libfilenames
     libavcodec/h264dec.c
     libavcodec/h264_cabac.c
     libavcodec/h264_cavlc.c
+    libavcodec/h264chroma.c
     libavcodec/h264_direct.c
     libavcodec/h264_loopfilter.c
     libavcodec/h264_mb.c
     libavcodec/h264_picture.c
+    libavcodec/h264_parse.c
+    libavcodec/h264_ps.c
+    libavcodec/h264pred.c
+    libavcodec/h264qpel.c
     libavcodec/h264_refs.c
     libavcodec/h264_sei.c
     libavcodec/h264_slice.c
-    libavcodec/h264data.c)
+    libavcodec/h264data.c
+    libavcodec/h264dsp.c
+    libavcodec/h2645_parse.c
+    libavcodec/videodsp.c)
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
 list(APPEND libfilenames
@@ -258,19 +310,36 @@ list(APPEND libfilenames
 endif()
 
 if(WIN32 OR ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l"))
-    option (BUILD_SHARED_LIBS "enabled static library instead of shared" ON)
+    option (WRAPPER_BUILD_SHARED_LIBS "enabled static library instead of shared" ON)
 else()
-    option (BUILD_SHARED_LIBS "enabled static library instead of shared" OFF)
+    option (WRAPPER_BUILD_SHARED_LIBS "enabled static library instead of shared" OFF)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
-link_directories(${PROJECT_SOURCE_DIR}/pthread/lib)
-add_library(openH264wrapper ${libfilenames} ${YASM_OBJECTS})
+
+if(WIN32)
+add_library(winpthread STATIC IMPORTED)
+if(X86_32)
+set_target_properties(winpthread PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/pthread/lib/pthread_static.lib)
+else()
+set_target_properties(winpthread PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/pthread/lib/pthread_static_x64.lib)
+endif()
+endif()
+
+
+if(WRAPPER_BUILD_SHARED_LIBS)
+add_library(openH264wrapper SHARED ${libfilenames} ${YASM_OBJECTS})
+else()
+add_library(openH264wrapper STATIC ${libfilenames} ${YASM_OBJECTS})
+endif()
+
+if(NOT WIN32)
 if(CRYPTOPP_FOUND)
 target_link_libraries(openH264wrapper cryptopp)
 else()
 target_link_libraries(openH264wrapper m)
 endif()
+endif()
 if(WIN32)
-target_link_libraries(openH264wrapper pthread_static_x64)
+target_link_libraries(openH264wrapper winpthread)
 endif()

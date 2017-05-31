@@ -25,6 +25,10 @@
         #define EXTERN_PREFIX ""
     #endif
 #endif
+#ifndef WIN32
+#cmakedefine WIN32
+#endif
+#cmakedefine X86_32
 #if defined(WIN32)
 #define EXTERN_ASM 
 #else
@@ -184,7 +188,7 @@
 #define HAVE_SSE3_INLINE 0
 #define HAVE_SSE4_INLINE 0
 #define HAVE_SSE42_INLINE 0
-#define HAVE_SSSE3_INLINE 
+#define HAVE_SSSE3_INLINE 0
 #else
 #define HAVE_MMX_INLINE ARCH_X86
 #define HAVE_MMXEXT_INLINE ARCH_X86_64
@@ -335,7 +339,7 @@
 #define HAVE_TRUNCF 1
 #define HAVE_ACCESS 0
 #define HAVE_ALIGNED_MALLOC 0
-#define HAVE_ARC4RANDOM 1
+#define HAVE_ARC4RANDOM 0
 #define HAVE_CLOCK_GETTIME 0
 #define HAVE_CLOSESOCKET 0
 #define HAVE_COMMANDLINETOARGVW 0
@@ -369,15 +373,27 @@
 #define HAVE_LOCALTIME_R @LOCALTIME_R_FOUND@
 #define HAVE_LSTAT 1
 #define HAVE_LZO1X_999_COMPRESS 0
+#if defined(WIN32)
+#define HAVE_MACH_ABSOLUTE_TIME 0
+#else
 #define HAVE_MACH_ABSOLUTE_TIME 1
+#endif
 #define HAVE_MAPVIEWOFFILE 0
 #define HAVE_MEMALIGN 0
+#if defined(WIN32)
+#define HAVE_MKSTEMP 0
+#else
 #define HAVE_MKSTEMP 1
+#endif
 #define HAVE_MMAP 1
 #define HAVE_MPROTECT 1
 #define HAVE_NANOSLEEP 0
 #define HAVE_PEEKNAMEDPIPE 0
+#if defined(WIN32)
+#define HAVE_POSIX_MEMALIGN 0
+#else
 #define HAVE_POSIX_MEMALIGN 1
+#endif
 #define HAVE_PTHREAD_CANCEL 1
 #define HAVE_SCHED_GETAFFINITY @SCHED_GETAFFINITY_FOUND@
 #define HAVE_SETCONSOLETEXTATTRIBUTE 0

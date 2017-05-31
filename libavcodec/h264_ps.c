@@ -34,6 +34,7 @@
 #include "h264data.h"
 #include "h264_ps.h"
 #include "golomb.h"
+#include <libavutil/internal.h>
 
 #define MAX_LOG2_MAX_FRAME_NUM    (12 + 4)
 #define MIN_LOG2_MAX_FRAME_NUM    4

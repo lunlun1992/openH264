@@ -689,9 +689,11 @@ static int decode_nal_units(H264Context *h, const uint8_t *buf, int buf_size)
                     (ret = h->avctx->hwaccel->start_frame(h->avctx, buf, buf_size)) < 0)
                     goto end;
 #if FF_API_CAP_VDPAU
-                if (CONFIG_H264_VDPAU_DECODER &&
+#if CONFIG_H264_VDPAU_DECODER
+                if (
                     h->avctx->codec->capabilities & AV_CODEC_CAP_HWACCEL_VDPAU)
                     ff_vdpau_h264_picture_start(h);
+#endif
 #endif
             }
 
@@ -702,7 +704,8 @@ static int decode_nal_units(H264Context *h, const uint8_t *buf, int buf_size)
                     h->nb_slice_ctx_queued = 0;
                 } else
 #if FF_API_CAP_VDPAU
-            if (CONFIG_H264_VDPAU_DECODER &&
+#if	CONFIG_H264_VDPAU_DECODER
+            if (
                        h->avctx->codec->capabilities & AV_CODEC_CAP_HWACCEL_VDPAU) {
                 ff_vdpau_add_data_chunk(h->cur_pic_ptr->f->data[0],
                                         start_code,
@@ -712,6 +715,7 @@ static int decode_nal_units(H264Context *h, const uint8_t *buf, int buf_size)
                                         nal->raw_size);
                 ret = 0;
             } else
+#endif
 #endif
                     ret = ff_h264_execute_decode_slices(h);
                 if (ret < 0 && (h->avctx->err_recognition & AV_EF_EXPLODE))
@@ -932,15 +936,15 @@ static int finalize_frame(H264Context *h, AVFrame *dst, H264Picture *out, int *g
             return ret;
 
         *got_frame = 1;
+#if CONFIG_MPEGVIDEO
 
-        if (CONFIG_MPEGVIDEO) {
             ff_print_debug_info2(h->avctx, dst, NULL,
                                  out->mb_type,
                                  out->qscale_table,
                                  out->motion_val,
                                  NULL,
                                  h->mb_width, h->mb_height, h->mb_stride, 1);
-        }
+#endif
     }
 
     return 0;
