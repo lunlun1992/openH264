@@ -99,8 +99,8 @@ endif()
 
 if(WIN32)
     add_definitions(
-        -Dsnprintf=avpriv_snprintf
-        -Dvsnprintf=avpriv_vsnprintf
+        # -Dsnprintf=avpriv_snprintf
+        # -Dvsnprintf=avpriv_vsnprintf
         -Dinline=__inline
         -Drestrict=__restrict
     )
@@ -339,7 +339,7 @@ endif()
 
 if(WIN32)
     list(APPEND libfilenames compat/strtod.c
-        compat/msvcrt/snprintf.c
+        # compat/msvcrt/snprintf.c
         compat/getopt.c)
 endif()
 if(WIN32 OR ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l"))
@@ -348,11 +348,10 @@ else()
     option (WRAPPER_BUILD_SHARED_LIBS "enabled static library instead of shared" OFF)
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/compat)
 if(WIN32)
-    include_directories(${PROJECT_SOURCE_DIR}/compat/win32)
+    include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/compat ${PROJECT_SOURCE_DIR}/compat/atomics/win32)
 else()
-    include_directories(${PROJECT_SOURCE_DIR}/compat/gcc)
+    include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/compat ${PROJECT_SOURCE_DIR}/compat/atomics/gcc)
 endif()
 
 if(WRAPPER_BUILD_SHARED_LIBS)

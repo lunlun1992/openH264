@@ -49,12 +49,18 @@ static atomic_int cpu_flags = ATOMIC_VAR_INIT(-1);
 
 static int get_cpu_flags(void)
 {
+#if ARCH_AARCH64
     if (ARCH_AARCH64)
         return ff_get_cpu_flags_aarch64();
+#endif
+#if ARCH_ARM
     if (ARCH_ARM)
         return ff_get_cpu_flags_arm();
+#endif
+#if ARCH_PPC
     if (ARCH_PPC)
         return ff_get_cpu_flags_ppc();
+#endif
     if (ARCH_X86)
         return ff_get_cpu_flags_x86();
     return 0;

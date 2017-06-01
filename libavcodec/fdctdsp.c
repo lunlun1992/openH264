@@ -42,9 +42,10 @@ av_cold void ff_fdctdsp_init(FDCTDSPContext *c, AVCodecContext *avctx)
         c->fdct    = ff_jpeg_fdct_islow_8; // slow/accurate/default
         c->fdct248 = ff_fdct248_islow_8;
     }
-
+#if ARCH_PPC
     if (ARCH_PPC)
         ff_fdctdsp_init_ppc(c, avctx, high_bit_depth);
+#endif
     if (ARCH_X86)
         ff_fdctdsp_init_x86(c, avctx, high_bit_depth);
 }

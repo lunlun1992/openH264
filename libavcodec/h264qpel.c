@@ -95,15 +95,22 @@ av_cold void ff_h264qpel_init(H264QpelContext *c, int bit_depth)
         SET_QPEL(14);
         break;
     }
-
+#if ARCH_AARCH64
     if (ARCH_AARCH64)
         ff_h264qpel_init_aarch64(c, bit_depth);
+#endif
+#if ARCH_ARM
     if (ARCH_ARM)
         ff_h264qpel_init_arm(c, bit_depth);
+#endif
+#if ARCH_PPC
     if (ARCH_PPC)
         ff_h264qpel_init_ppc(c, bit_depth);
+#endif
     if (ARCH_X86)
         ff_h264qpel_init_x86(c, bit_depth);
+#if ARCH_MIPS
     if (ARCH_MIPS)
         ff_h264qpel_init_mips(c, bit_depth);
+#endif
 }

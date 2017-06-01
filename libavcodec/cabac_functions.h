@@ -31,6 +31,7 @@
 
 #include "cabac.h"
 #include "config.h"
+#include "libavutil/intmath.h"
 
 #ifndef UNCHECKED_BITSTREAM_READER
 #define UNCHECKED_BITSTREAM_READER !CONFIG_SAFE_BITSTREAM_READER

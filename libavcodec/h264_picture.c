@@ -157,9 +157,11 @@ int ff_h264_field_end(H264Context *h, H264SliceContext *sl, int in_setup)
     h->mb_y = 0;
 
 #if FF_API_CAP_VDPAU
-    if (CONFIG_H264_VDPAU_DECODER &&
+#if CONFIG_H264_VDPAU_DECODER
+    if (
         h->avctx->codec->capabilities & AV_CODEC_CAP_HWACCEL_VDPAU)
         ff_vdpau_h264_set_reference_frames(h);
+#endif
 #endif
 
     if (in_setup || !(avctx->active_thread_type & FF_THREAD_FRAME)) {
@@ -180,9 +182,11 @@ int ff_h264_field_end(H264Context *h, H264SliceContext *sl, int in_setup)
     }
 
 #if FF_API_CAP_VDPAU
-    if (CONFIG_H264_VDPAU_DECODER &&
+#if CONFIG_H264_VDPAU_DECODER
+    if (
         h->avctx->codec->capabilities & AV_CODEC_CAP_HWACCEL_VDPAU)
         ff_vdpau_h264_picture_complete(h);
+#endif
 #endif
 
     if (!in_setup && !h->droppable)

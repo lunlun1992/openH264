@@ -293,22 +293,32 @@ av_cold void ff_idctdsp_init(IDCTDSPContext *c, AVCodecContext *avctx)
     c->put_pixels_clamped        = put_pixels_clamped_c;
     c->put_signed_pixels_clamped = put_signed_pixels_clamped_c;
     c->add_pixels_clamped        = add_pixels_clamped_c;
-
+#if CONFIG_MPEG4_DECODER
     if (CONFIG_MPEG4_DECODER && avctx->idct_algo == FF_IDCT_XVID)
         ff_xvid_idct_init(c, avctx);
-
+#endif
+#if ARCH_AARCH64
     if (ARCH_AARCH64)
         ff_idctdsp_init_aarch64(c, avctx, high_bit_depth);
+#endif
+#if ARCH_ALPHA
     if (ARCH_ALPHA)
         ff_idctdsp_init_alpha(c, avctx, high_bit_depth);
+#endif
+#if ARCH_ARM
     if (ARCH_ARM)
         ff_idctdsp_init_arm(c, avctx, high_bit_depth);
+#endif
+#if ARCH_PPC
     if (ARCH_PPC)
         ff_idctdsp_init_ppc(c, avctx, high_bit_depth);
+#endif
     if (ARCH_X86)
         ff_idctdsp_init_x86(c, avctx, high_bit_depth);
+#if ARCH_MIPS
     if (ARCH_MIPS)
         ff_idctdsp_init_mips(c, avctx, high_bit_depth);
+#endif
 
     ff_put_pixels_clamped = c->put_pixels_clamped;
     ff_add_pixels_clamped = c->add_pixels_clamped;
