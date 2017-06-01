@@ -58,7 +58,6 @@
         if (CONFIG_##X##_PARSER)                                        \
             av_register_codec_parser(&ff_##x##_parser);                 \
     }
-
 //static void register_all(void)
 //{
 //    /* hardware accelerators */
@@ -719,6 +718,7 @@
 static void register_all()
 {
 	REGISTER_DECODER(H264, h264);
+	REGISTER_PARSER(H264, h264);
 }
 void avcodec_register_all(void)
 {
