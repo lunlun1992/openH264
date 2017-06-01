@@ -30,6 +30,7 @@
 
 #include "libavutil/avassert.h"
 #include "libavutil/qsort.h"
+#include "libavutil/internal.h"
 #include "avcodec.h"
 #include "internal.h"
 #include "mathops.h"

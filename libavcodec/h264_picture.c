@@ -28,6 +28,7 @@
 #include "libavutil/avassert.h"
 #include "libavutil/imgutils.h"
 #include "libavutil/timer.h"
+#include "libavutil/internal.h"
 #include "internal.h"
 #include "cabac.h"
 #include "cabac_functions.h"

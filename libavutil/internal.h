@@ -46,6 +46,7 @@
 #include "macros.h"
 #include "pixfmt.h"
 #include "version.h"
+#include "libavutil/internal.h"
 
 #if ARCH_X86
 #   include "x86/emms.h"

@@ -1,7 +1,4 @@
 /*
- * MSVC Compatible va_copy macro
- * Copyright (c) 2012 Derek Buitenhuis
- *
  * This file is part of FFmpeg.
  *
  * FFmpeg is free software; you can redistribute it and/or
@@ -19,16 +16,19 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef COMPAT_VA_COPY_H
-#define COMPAT_VA_COPY_H
+int plan9_main(int argc, char **argv);
 
-#include <stdarg.h>
-
-#if !defined(va_copy) && defined(_MSC_VER)
-#define va_copy(dst, src) ((dst) = (src))
+#undef main
+int main(int argc, char **argv)
+{
+    /* The setfcr() function in lib9 is broken, must use asm. */
+#ifdef __i386
+    short fcr;
+    __asm__ volatile ("fstcw        %0 \n"
+                      "or      $63, %0 \n"
+                      "fldcw        %0 \n"
+                      : "=m"(fcr));
 #endif
-#if !defined(va_copy) && defined(__GNUC__) && __GNUC__ < 3
-#define va_copy(dst, src) __va_copy(dst, src)
-#endif
 
-#endif /* COMPAT_VA_COPY_H */
+    return plan9_main(argc, argv);
+}

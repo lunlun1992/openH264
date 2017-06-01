@@ -127,7 +127,7 @@ static inline int strict_pthread_once(pthread_once_t *once_control, void (*init_
 #elif HAVE_OS2THREADS
 #include "compat/os2threads.h"
 #else
-#include "pthread/include/pthread.h"
+#include "compat/w32pthreads.h"
 #endif
 
 #define AVMutex pthread_mutex_t

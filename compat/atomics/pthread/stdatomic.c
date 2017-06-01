@@ -1,7 +1,4 @@
 /*
- * MSVC Compatible va_copy macro
- * Copyright (c) 2012 Derek Buitenhuis
- *
  * This file is part of FFmpeg.
  *
  * FFmpeg is free software; you can redistribute it and/or
@@ -19,16 +16,24 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef COMPAT_VA_COPY_H
-#define COMPAT_VA_COPY_H
+/*
+ * based on vlc_atomic.h from VLC
+ * Copyright (C) 2010 Rémi Denis-Courmont
+ */
 
-#include <stdarg.h>
+#include <pthread.h>
+#include <stdint.h>
 
-#if !defined(va_copy) && defined(_MSC_VER)
-#define va_copy(dst, src) ((dst) = (src))
-#endif
-#if !defined(va_copy) && defined(__GNUC__) && __GNUC__ < 3
-#define va_copy(dst, src) __va_copy(dst, src)
-#endif
+#include "stdatomic.h"
 
-#endif /* COMPAT_VA_COPY_H */
+static pthread_mutex_t atomic_lock = PTHREAD_MUTEX_INITIALIZER;
+
+void avpriv_atomic_lock(void)
+{
+    pthread_mutex_lock(&atomic_lock);
+}
+
+void avpriv_atomic_unlock(void)
+{
+    pthread_mutex_unlock(&atomic_lock);
+}

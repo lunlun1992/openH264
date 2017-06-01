@@ -1,7 +1,4 @@
 /*
- * MSVC Compatible va_copy macro
- * Copyright (c) 2012 Derek Buitenhuis
- *
  * This file is part of FFmpeg.
  *
  * FFmpeg is free software; you can redistribute it and/or
@@ -19,16 +16,15 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef COMPAT_VA_COPY_H
-#define COMPAT_VA_COPY_H
+#ifndef COMPAT_TMS470_MATH_H
+#define COMPAT_TMS470_MATH_H
 
-#include <stdarg.h>
+#include_next <math.h>
 
-#if !defined(va_copy) && defined(_MSC_VER)
-#define va_copy(dst, src) ((dst) = (src))
-#endif
-#if !defined(va_copy) && defined(__GNUC__) && __GNUC__ < 3
-#define va_copy(dst, src) __va_copy(dst, src)
-#endif
+#undef INFINITY
+#undef NAN
 
-#endif /* COMPAT_VA_COPY_H */
+#define INFINITY (*(const float*)((const unsigned []){ 0x7f800000 }))
+#define NAN      (*(const float*)((const unsigned []){ 0x7fc00000 }))
+
+#endif /* COMPAT_TMS470_MATH_H */

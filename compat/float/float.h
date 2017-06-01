@@ -1,6 +1,5 @@
 /*
- * MSVC Compatible va_copy macro
- * Copyright (c) 2012 Derek Buitenhuis
+ * Work around broken floating point limits on some systems.
  *
  * This file is part of FFmpeg.
  *
@@ -19,16 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef COMPAT_VA_COPY_H
-#define COMPAT_VA_COPY_H
+#include_next <float.h>
 
-#include <stdarg.h>
+#ifdef FLT_MAX
+#undef  FLT_MAX
+#define FLT_MAX 3.40282346638528859812e+38F
 
-#if !defined(va_copy) && defined(_MSC_VER)
-#define va_copy(dst, src) ((dst) = (src))
+#undef  FLT_MIN
+#define FLT_MIN 1.17549435082228750797e-38F
+
+#undef  DBL_MAX
+#define DBL_MAX ((double)1.79769313486231570815e+308L)
+
+#undef  DBL_MIN
+#define DBL_MIN ((double)2.22507385850720138309e-308L)
 #endif
-#if !defined(va_copy) && defined(__GNUC__) && __GNUC__ < 3
-#define va_copy(dst, src) __va_copy(dst, src)
-#endif
-
-#endif /* COMPAT_VA_COPY_H */

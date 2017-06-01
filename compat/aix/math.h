@@ -1,6 +1,6 @@
 /*
- * MSVC Compatible va_copy macro
- * Copyright (c) 2012 Derek Buitenhuis
+ * Work around the class() function in AIX math.h clashing with
+ * identifiers named "class".
  *
  * This file is part of FFmpeg.
  *
@@ -19,16 +19,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef COMPAT_VA_COPY_H
-#define COMPAT_VA_COPY_H
+#ifndef COMPAT_AIX_MATH_H
+#define COMPAT_AIX_MATH_H
 
-#include <stdarg.h>
+#define class class_in_math_h_causes_problems
 
-#if !defined(va_copy) && defined(_MSC_VER)
-#define va_copy(dst, src) ((dst) = (src))
-#endif
-#if !defined(va_copy) && defined(__GNUC__) && __GNUC__ < 3
-#define va_copy(dst, src) __va_copy(dst, src)
-#endif
+#include_next <math.h>
 
-#endif /* COMPAT_VA_COPY_H */
+#undef class
+
+#endif /* COMPAT_AIX_MATH_H */

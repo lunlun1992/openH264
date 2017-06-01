@@ -99,8 +99,8 @@ endif()
 
 if(WIN32)
     add_definitions(
-#        -Dsnprintf=avpriv_snprintf
-#        -Dvsnprintf=avpriv_vsnprintf
+        -Dsnprintf=avpriv_snprintf
+        -Dvsnprintf=avpriv_vsnprintf
         -Dinline=__inline
         -Drestrict=__restrict
     )
@@ -112,6 +112,7 @@ if(YASM_FOUND)
 set(YASM_NAMES
     libavutil/x86/cpuid.asm
     libavutil/x86/emms.asm
+    libavutil/x86/imgutils.asm
     libavcodec/x86/h264_chromamc.asm
     libavcodec/x86/h264_chromamc_10bit.asm
     libavcodec/x86/h264_deblock.asm
@@ -126,7 +127,11 @@ set(YASM_NAMES
     libavcodec/x86/h264_qpel_10bit.asm
     libavcodec/x86/fpel.asm
     libavcodec/x86/qpel.asm
-
+    libavcodec/x86/idctdsp.asm
+    libavcodec/x86/me_cmp.asm
+    libavcodec/x86/pixblockdsp.asm
+    libavcodec/x86/simple_idct10.asm
+    libavcodec/x86/videodsp.asm
 )
 endif(YASM_FOUND)
 endif(NOT ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l") )
@@ -241,7 +246,6 @@ set(libfilenames
     libavcodec/bsf.c
     libavcodec/codec_desc.c
     libavcodec/cabac.c
-    libavcodec/constants.c
     libavcodec/d3d11va.c
     libavcodec/dirac.c
     libavcodec/dv_profile.c
@@ -275,6 +279,8 @@ set(libfilenames
     libavcodec/h264_mb.c
     libavcodec/h264_picture.c
     libavcodec/h264_parse.c
+    libavcodec/h264_parser.c
+    libavcodec/h264_picture.c
     libavcodec/h264_ps.c
     libavcodec/h264pred.c
     libavcodec/h264qpel.c
@@ -284,7 +290,19 @@ set(libfilenames
     libavcodec/h264data.c
     libavcodec/h264dsp.c
     libavcodec/h2645_parse.c
-    libavcodec/videodsp.c)
+    libavcodec/h264idct.c
+    libavcodec/videodsp.c
+    libavcodec/faandct.c
+    libavcodec/faanidct.c
+    libavcodec/jfdctint.c
+    libavcodec/jfdctfst.c
+    libavcodec/golomb.c
+    libavcodec/jrevdct.c
+    libavcodec/me_cmp.c
+    libavcodec/startcode.c
+    libavcodec/pthread.c
+    libavcodec/pthread_slice.c
+    libavcodec/simple_idct.c)
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
 list(APPEND libfilenames
@@ -303,43 +321,50 @@ list(APPEND libfilenames
 else()
 list(APPEND libfilenames
     libavutil/x86/cpu.c
+    libavutil/x86/imgutils_init.c
     libavcodec/x86/h264chroma_init.c
     libavcodec/x86/h264dsp_init.c
     libavcodec/x86/h264_intrapred_init.c
-    libavcodec/x86/h264_qpel.c)
+    libavcodec/x86/h264_qpel.c
+    libavcodec/x86/fdctdsp_init.c
+    libavcodec/x86/fdct.c
+    libavcodec/x86/idctdsp_init.c
+    libavcodec/x86/me_cmp_init.c
+    libavcodec/x86/constants.c
+    libavcodec/x86/pixblockdsp_init.c
+    libavcodec/x86/simple_idct.c
+    libavcodec/x86/videodsp_init.c)
+
 endif()
 
+if(WIN32)
+    list(APPEND libfilenames compat/strtod.c
+        compat/msvcrt/snprintf.c
+        compat/getopt.c)
+endif()
 if(WIN32 OR ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l"))
     option (WRAPPER_BUILD_SHARED_LIBS "enabled static library instead of shared" ON)
 else()
     option (WRAPPER_BUILD_SHARED_LIBS "enabled static library instead of shared" OFF)
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR})
-
+include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/compat)
 if(WIN32)
-add_library(winpthread STATIC IMPORTED)
-if(X86_32)
-set_target_properties(winpthread PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/pthread/lib/pthread_static.lib)
+    include_directories(${PROJECT_SOURCE_DIR}/compat/win32)
 else()
-set_target_properties(winpthread PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/pthread/lib/pthread_static_x64.lib)
+    include_directories(${PROJECT_SOURCE_DIR}/compat/gcc)
 endif()
-endif()
-
 
 if(WRAPPER_BUILD_SHARED_LIBS)
-add_library(openH264wrapper SHARED ${libfilenames} ${YASM_OBJECTS})
+    add_library(openH264wrapper SHARED ${libfilenames} ${YASM_OBJECTS})
 else()
-add_library(openH264wrapper STATIC ${libfilenames} ${YASM_OBJECTS})
+    add_library(openH264wrapper STATIC ${libfilenames} ${YASM_OBJECTS})
 endif()
 
 if(NOT WIN32)
-if(CRYPTOPP_FOUND)
-target_link_libraries(openH264wrapper cryptopp)
-else()
-target_link_libraries(openH264wrapper m)
-endif()
-endif()
-if(WIN32)
-target_link_libraries(openH264wrapper winpthread)
+    if(CRYPTOPP_FOUND)
+        target_link_libraries(openH264wrapper cryptopp)
+    else()
+        target_link_libraries(openH264wrapper m)
+    endif()
 endif()
