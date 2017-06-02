@@ -9,19 +9,19 @@ int main(int argc, char **argv)
 	AVCodecContext *pCodecCtx = NULL;
 	AVCodecParserContext *pParserCtx = NULL;
 	AVCodec *pCodec = NULL;
-	AVPacket packet = { 0 };
+	AVPacket *pPacket = NULL;
 	AVFrame *pFrame = NULL;
 	int ret = 0;
 	FILE *filein = NULL;
 	FILE *fileout = NULL;
 	int inputlength = 0;
 	uint8_t *inputbytes = NULL;
-	uint8_t *outputyuv = NULL;
 	uint8_t *pdata = NULL;
 	int lendata = 0;
-	int i, j;
+	int i = 0;
 
-	filein = fopen("one.h264", "rb");
+
+	filein = fopen("in.h264", "rb");
 	if (!filein)
 	{
 		av_log(NULL, AV_LOG_ERROR, "open input file error\n");
@@ -77,13 +77,13 @@ int main(int argc, char **argv)
 	}
 
 	pFrame = av_frame_alloc();
-	av_init_packet(&packet);
+	pPacket = av_packet_alloc();
 
 	pdata = inputbytes;
 	lendata = inputlength;
-	while(lendata > 0)
+	while(1)
 	{
-		ret = av_parser_parse2(pParserCtx, pCodecCtx, &packet.data, &packet.size, pdata, lendata, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
+		ret = av_parser_parse2(pParserCtx, pCodecCtx, &pPacket->data, &pPacket->size, pdata, lendata, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
 		if(ret < 0)
 		{
 			av_log(NULL, AV_LOG_ERROR, "parser parse fail\n");
@@ -93,9 +93,9 @@ int main(int argc, char **argv)
 		pdata += ret;
 		lendata -= ret;
 		
-		if(packet.size)
+		if(pPacket->size)
 		{
-			ret = avcodec_send_packet(pCodecCtx, &packet);
+			ret = avcodec_send_packet(pCodecCtx, pPacket);
 			if (ret < 0)
 			{
 				av_log(NULL, AV_LOG_ERROR, "send packet fail\n");
@@ -119,6 +119,11 @@ int main(int argc, char **argv)
 				for (i = 0; i < (pFrame->height >> 1); i++)
 					fwrite(pFrame->data[2] + i * pFrame->linesize[2], pFrame->width >> 1, 1, fileout);
 			}
+
+			//we must send 0 length into av_parser_parse2 to flush the parser for the last packet.
+			//when flush the parser, there must be the last packet into this if condition
+			if (lendata == 0)
+				break;
 		}
 	}
 
@@ -152,7 +157,7 @@ int main(int argc, char **argv)
 	fclose(fileout);
 	free(inputbytes);
 	av_frame_free(&pFrame);
-	av_packet_unref(&packet);
+	av_packet_free(&pPacket);
 	av_parser_close(pParserCtx);
 	return 0;
 fail:
@@ -162,8 +167,10 @@ fail:
 		fclose(filein);
 	if (inputbytes)
 		free(inputbytes);
+	if (fileout)
+		free(fileout);
 	av_frame_free(&pFrame);
-	av_packet_unref(&packet);
+	av_packet_free(&pPacket);
 	av_parser_close(pParserCtx);
 	return -1;
 }
